@@ -22,9 +22,8 @@ var spinner = (function (){
 	function decrement(){
 		return --counter;
 	}
-	var spinner = {
+	return {
 		up : increment,
 		down : decrement
 	};
-	return spinner;
 })();

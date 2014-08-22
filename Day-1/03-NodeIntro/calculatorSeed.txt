@@ -1,0 +1,4 @@
+add,100,200
+subtract,100,200
+multiply,100,200
+divide,100,200
