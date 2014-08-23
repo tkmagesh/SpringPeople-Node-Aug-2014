@@ -2,6 +2,7 @@ var http=require('http'),
 	path=require('path'),
 	fs = require('fs'),
 	url = require('url'),
+	querystring = require('querystring'),
 	calculator = require('./calculator'),
 	extensions = ['.html','.css','.js','.ico'];
 
@@ -23,19 +24,27 @@ function requestListener(req,res){
 		return;
 	}
 	if (urlObject.pathname === '/calculator'){
-		var operation = urlObject.query.operation,
-			number1 = parseInt(urlObject.query.n1,10),
-			number2 = parseInt(urlObject.query.n2,10);
+		var reqBody = '';
+		req.on('data', function(data){
+			reqBody += data;
+		});
+		req.on('end', function(){
+			var reqObj = querystring.parse(reqBody);
+			var operation = reqObj.operation,
+			number1 = parseInt(reqObj.n1,10),
+			number2 = parseInt(reqObj.n2,10);
 
-		res.write(calculator[urlObject.query.operation](number1,number2).toString());
-		res.end();
+			res.write(calculator[reqObj.operation](number1,number2).toString());
+			res.end();	
+		});
+		
 	}
 }
 
 function processStaticResource(req,res){
 	if (fs.existsSync(req.fileName)){
 		var readStream = fs.createReadStream(req.fileName,{encoding : "utf8"});
-		var readCount = 0;
+		/*var readCount = 0;
 		readStream.on('data', function(data){
 			++readCount;
 			res.write(data);
@@ -43,7 +52,8 @@ function processStaticResource(req,res){
 		readStream.on('end',function(){
 			console.log(readCount);
 			res.end();		
-		});
+		});*/
+		readStream.pipe(res);
 	} else {
 		res.statusCode = 404;
 		res.end();	
