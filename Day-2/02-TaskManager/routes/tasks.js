@@ -1,15 +1,11 @@
 var express = require('express');
 var router = express.Router();
+var repository = require('../repositories/taskRepository');
 
-var taskList = [
-	{id : 1, name : "Task - 1", isCompleted : false},
-	{id : 2, name : "Task - 2", isCompleted : false},
-	{id : 3, name : "Task - 3", isCompleted : false}
-];
 
 /* GET users listing. */
 router.get('/', function(req, res) {
-  res.render('tasks/list', {list : taskList});
+  res.render('tasks/list', {list : repository.getAll()});
 });
 
 router.get('/new', function(req,res){
@@ -18,19 +14,27 @@ router.get('/new', function(req,res){
 
 router.post('/new', function(req,res){
 	var taskName = req.body.taskName;
-	var newId = taskList[taskList.length-1].id + 1;
-	taskList.push({id : newId, name : taskName, isCompleted : false});
-	res.render('tasks/list', {list : taskList});
+	repository.add(taskName);
+	res.render('tasks/list', {list : repository.getAll()});
 });
 
 router.get('/toggle', function(req,res){
-	console.log(req.query.id);
 	var id = parseInt(req.query.id,10);
-	var task = taskList.filter(function(t){
-		return t.id === id;
-	})[0];
-	task.isCompleted = !task.isCompleted;
-	res.render('tasks/list', {list : taskList});
+	repository.toggle(id);
+	res.render('tasks/list', {list : repository.getAll()});
+});
+
+router.get('/save',function(req,res){
+	repository.save(function(err){
+		if (err) throw err;
+		res.render('tasks/list', {list : repository.getAll(), message : "Data saved successfully!"});	
+	});
+
+});
+
+router.get('/data',function(req,res){
+	res.write(JSON.stringify(repository.getAll()));
+	res.end();
 });
 
 module.exports = router;
